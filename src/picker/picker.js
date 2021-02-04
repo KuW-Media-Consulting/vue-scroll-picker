@@ -262,19 +262,23 @@ export default {
     },
     correctionAfterDragging () {
       let index = null
-      let diff = null
+      // Scroll transforming changes the top position
       const top = this.top
-      if (this.placeholder) {
-        index = -1
-        diff = 0 + top
-      }
-      this.pivots.forEach((pivot, i) => {
-        const _diff = pivot + top
-        if (diff === null || Math.abs(diff) > Math.abs(_diff)) {
+      // Selection area values
+      const selectedArea = this.$refs.selection
+      for (const [i, item] of this.$refs.items.entries()) {
+        // Item is allowed to start 50% of its own height above the selection
+        const min = selectedArea.offsetTop - (item.offsetHeight / 2)
+        // Item starts at it's own offset plus the top position transformation
+        const itemStart = item.offsetTop + top
+        // First item matching the area is to be selected
+        if (min <= itemStart) {
           index = i
-          diff = _diff
+          break
         }
-      })
+      }
+      // If no item matches, you can be sure it's scrolled behind last item -> last item it is
+      index = index === null ? this.$refs.items.length - 1 : index
       this.correction(index)
     },
     correction(index, isImmediatly) {
